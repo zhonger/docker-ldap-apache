@@ -1,0 +1,6 @@
+# .htaccess
+
+AuthBasicProvider demo
+AuthType Basic
+AuthName "Protected Area"
+Require valid-user

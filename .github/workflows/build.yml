@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    tags:
+      - v*
+
+env:
+  APP_NAME: ldap-apache
+  DOCKERHUB_REPO: zhonger/ldap-apache
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Login to Alibaba Cloud Container Registry (ACR)
+        uses: docker/login-action@v2
+        with:
+          registry: registry.cn-shanghai.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      -
+        name: Login to Quay.io
+        uses: docker/login-action@v2
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}  
+      - 
+        name: Generate App Version
+        run: echo APP_VERSION=`git describe --tags --always` >> $GITHUB_ENV
+      -
+        name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          platforms: |
+            linux/386
+            linux/amd64
+            linux/arm/v5
+            linux/arm/v7
+            linux/arm64
+            linux/mips64le
+            linux/ppc64le
+            linux/s390x
+          push: true
+          build-args: |
+            APP_NAME=${{ env.APP_NAME }}
+            APP_VERSION=${{ env.APP_VERSION }}
+          tags: |
+            ${{ env.DOCKERHUB_REPO }}:latest
+            ${{ env.DOCKERHUB_REPO }}:${{ env.APP_VERSION }}
+            quay.io/${{ env.DOCKERHUB_REPO }}:latest
+            quay.io/${{ env.DOCKERHUB_REPO }}:${{ env.APP_VERSION }}
+            registry.cn-shanghai.aliyuncs.com/${{ env.DOCKERHUB_REPO }}:latest
+            registry.cn-shanghai.aliyuncs.com/${{ env.DOCKERHUB_REPO }}:${{ env.APP_VERSION }}
+            

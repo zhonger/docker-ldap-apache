@@ -1,0 +1,21 @@
+# docker-compose.yml
+
+version: '3'
+
+services:
+    apache:
+      image: zhonger/ldap-apache:latest
+      volumes:
+        # - ./apache2.conf:/etc/apache2/apache2.conf
+        - ./data:/var/www/
+        - ./logs:/var/log/apache2/
+        - /etc/localtime:/etc/localtime
+      environment:
+        LDAP_URL: "ldap://ldap.example.com/ou=users,dc=example,dc=com?uid"
+        LDAP_BindDN: "cn=admin,dc=example,dc=com"
+        LDAP_BindPass: "xxxxxxxxxx"
+        LDAP_BindGroup: "ou=people,dc=example,dc=com"
+        APACHE_LOG_DIR: "/var/log/apache2"
+      ports:
+        - 6080:80
+      restart: always
